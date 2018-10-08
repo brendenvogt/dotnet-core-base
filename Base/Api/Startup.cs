@@ -9,16 +9,28 @@ using Microsoft.Extensions.Logging;
 using Swashbuckle.AspNetCore.Swagger;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
+using Serilog;
+using ILogger = Microsoft.Extensions.Logging.ILogger;
+
 using Microsoft.Extensions.PlatformAbstractions;
 using System.IO;
+
+using Infrastructure.Utilities;
+
 
 namespace Api
 {
     public class Startup
     {
-        public Startup(IConfiguration configuration)
+        public Startup(IConfiguration configuration, ILoggerFactory loggerFactory)
         {
+            //configuration
             Configuration = configuration;
+
+            //logging
+            loggerFactory.AddConsole(Configuration.GetSection("Logging"));
+            loggerFactory.AddDebug();
+            _logger = CreateLoggger(loggerFactory);
         }
 
         public IConfiguration Configuration { get; }
@@ -27,6 +39,8 @@ namespace Api
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddCommonDependencies(Configuration, _logger);
+
             services.AddMvc();
 
             if (Configuration["EnableSwagger"] == "true")
@@ -54,23 +68,20 @@ namespace Api
                 {
                     { "Bearer", new string[] { } }
                 });
-
-
             };
         }
 
-        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        //public void Configure(IApplicationBuilder app, IHostingEnvironment env)
-        //{
-        //    if (env.IsDevelopment())
-        //        app.UseDeveloperExceptionPage();
+        ILogger CreateLoggger(ILoggerFactory loggerFactory)
+        {
+            Log.Logger = new LoggerConfiguration()
+                .Enrich.FromLogContext()
+                .WriteTo.LiterateConsole()
+                .CreateLogger();
+            loggerFactory.AddSerilog();
 
-        //    app.UseMvc();
+            return loggerFactory.CreateLogger<Startup>();
+        }
 
-        //    if (Configuration["EnableSwagger"] == "true")
-        //        app.UseSwagger();
-
-        //}
 
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory, IServiceProvider serviceProvider)
         {

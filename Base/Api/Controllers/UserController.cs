@@ -39,7 +39,6 @@ namespace Api.Controllers
         /// </summary>
         /// <returns>JWT Token.</returns>
         [HttpPost("signup")]
-        [SwaggerResponse((int)HttpStatusCode.OK, Type = typeof(ApiResult<AuthInfo>))]
         public IActionResult PostSignup()
         {
             return new JsonResult(new { success = true });
