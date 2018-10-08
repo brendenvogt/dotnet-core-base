@@ -39,7 +39,7 @@ namespace Api.Controllers
         /// </summary>
         /// <returns>JWT Token.</returns>
         [HttpPost("signup")]
-        public async Task<IActionResult> PostSignup()
+        public IActionResult PostSignup()
         {
             return new JsonResult(new { success = true });
         }
@@ -49,7 +49,7 @@ namespace Api.Controllers
         /// </summary>
         /// <returns>JWT Token.</returns>
         [HttpPost("login", Name = "PostLogin")]
-        public async Task<IActionResult> PostLogin()
+        public IActionResult PostLogin()
         {
             return new JsonResult(new { success = true });
         }
