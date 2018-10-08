@@ -7,7 +7,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Configuration;
 
 using AutoMapper;
-using Swashbuckle.AspNetCore.SwaggerGen;
+using Swashbuckle.AspNetCore.Swagger;
 
 namespace Api.Controllers
 {
@@ -39,6 +39,7 @@ namespace Api.Controllers
         /// </summary>
         /// <returns>JWT Token.</returns>
         [HttpPost("signup")]
+        [SwaggerResponse((int)HttpStatusCode.OK, Type = typeof(ApiResult<AuthInfo>))]
         public IActionResult PostSignup()
         {
             return new JsonResult(new { success = true });
