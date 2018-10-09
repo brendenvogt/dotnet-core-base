@@ -1,40 +1,50 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
+
+using Infrastructure.Utilities;
+using Hangfire;
+using Hangfire.Mongo;
+using Hangfire.MemoryStorage;
 
 namespace Jobs
 {
     public class Startup
     {
-        public Startup(IConfiguration configuration)
+        readonly ILogger _logger;
+        readonly IConfiguration _configuration;
+
+        public Startup(IConfiguration configuration, ILoggerFactory loggerFactory)
         {
-            Configuration = configuration;
+            _logger = loggerFactory.CreateLogger("JobsLog");
+            _configuration = configuration;
         }
 
-        public IConfiguration Configuration { get; }
-
-        // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddMvc();
+            services.AddCommonDependencies(_configuration, _logger)
+                    .AddHangfire(x => x.UseMemoryStorage(new MemoryStorageOptions { FetchNextJobTimeout = TimeSpan.FromDays(365 * 100) }));
         }
 
-        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
-            if (env.IsDevelopment())
-            {
-                app.UseDeveloperExceptionPage();
-            }
+            GlobalConfiguration.Configuration.UseMongoStorage(_configuration["ConnectionString:Mongo"], _configuration["System:DefaultDatabase"]);
 
-            app.UseMvc();
+            app.UseHangfireServer();
+            app.UseHangfireDashboard();
+
+            //queue
+            //BackgroundJob.Enqueue<QueueProcessJob<ImageAssetProcessResponse>>(a => a.Run(null, JobCancellationToken.Null));
+
+            //recurring
+            //RecurringJob.AddOrUpdate<SampleJob>(a => a.Run(), Cron.Minutely());
+
+            //background
+            //BackgroundJob.Schedule<MongoDbInitializer>(a => a.Initialize(), TimeSpan.FromDays(365 * 360));
+
         }
     }
 }

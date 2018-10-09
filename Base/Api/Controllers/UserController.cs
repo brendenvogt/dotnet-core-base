@@ -8,6 +8,8 @@ using Microsoft.Extensions.Configuration;
 
 using AutoMapper;
 using Swashbuckle.AspNetCore.Swagger;
+using Infrastructure.Data.Repositories;
+using Core.Entities;
 
 namespace Api.Controllers
 {
@@ -20,6 +22,7 @@ namespace Api.Controllers
         readonly ILogger _logger;
         readonly IConfiguration _configuration;
         readonly IMapper _mapper;
+        readonly IMongoRepository<User> _userRepo;
 
         /// <summary>
         /// Initializes a new instance of the controller
@@ -27,11 +30,12 @@ namespace Api.Controllers
         /// <param name="configuration">Configuration.</param>
         /// <param name="logger">Logger.</param>
         /// <param name="mapper">Mapper.</param>
-        public UserController(IConfiguration configuration, ILogger logger, IMapper mapper)
+        public UserController(IConfiguration configuration, ILogger logger, IMapper mapper, IMongoRepository<User> userRepo)
         {
             _configuration = configuration;
             _logger = logger;
             _mapper = mapper;
+            _userRepo = userRepo;
         }
 
         /// <summary>
@@ -51,6 +55,11 @@ namespace Api.Controllers
         [HttpPost("login", Name = "PostLogin")]
         public IActionResult PostLogin()
         {
+            _userRepo.AddAsync(new User
+            {
+                UserId = Guid.NewGuid()
+            });
+
             return new JsonResult(new { success = true });
         }
 

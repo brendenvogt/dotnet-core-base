@@ -5,12 +5,13 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Http;
-using Newtonsoft.Json;
-using AutoMapper;
-
 using Infrastructure.Interfaces;
 using Infrastructure.Services;
 using Infrastructure.Data.Mappings;
+using AutoMapper;
+using MongoDB.Driver;
+
+using Infrastructure.Data.Repositories;
 
 namespace Infrastructure.Utilities
 {
@@ -61,8 +62,18 @@ namespace Infrastructure.Utilities
                     return configuration["SSL_API:ValidateSSL"] == "false"
                         ? new HttpClient(new HttpClientHandler { ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => true })
                         : new HttpClient();
-                });
-                //add mongo
+                })
+                .AddTransient(a => CreateMongoDatabase(configuration, logger));
+        }
+
+        static IMongoDatabase CreateMongoDatabase(IConfiguration configuration, ILogger logger)
+        {
+            MongoDbMapping.RegisterMapping();
+            var connectionString = configuration["ConnectionString:Mongo"];
+            logger.LogDebug("Mongo connectionstring: {connectionString}", connectionString);
+            var client = new MongoClient(connectionString);
+            IMongoDatabase db = client.GetDatabase(configuration["System:DefaultDatabase"]);
+            return db;
         }
 
         static IServiceCollection AddServices(this IServiceCollection serviceCollection)
@@ -75,7 +86,7 @@ namespace Infrastructure.Utilities
 
         static IServiceCollection AddRepoistories(this IServiceCollection serviceCollection)
         {
-            return serviceCollection;
+            return serviceCollection.AddTransient(typeof(IMongoRepository<>), typeof(MongoRepository<>));
         }
 
         static T GetValue<T>(Dictionary<string, string> config, string key, T defaultValue = default(T))
