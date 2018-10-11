@@ -22,7 +22,7 @@ namespace Api.Controllers
         readonly ILogger _logger;
         readonly IConfiguration _configuration;
         readonly IMapper _mapper;
-        readonly IMongoRepository<User> _userRepo;
+        readonly IMongoRepository<UserEntity> _userRepo;
 
         /// <summary>
         /// Initializes a new instance of the controller
@@ -30,7 +30,7 @@ namespace Api.Controllers
         /// <param name="configuration">Configuration.</param>
         /// <param name="logger">Logger.</param>
         /// <param name="mapper">Mapper.</param>
-        public UserController(IConfiguration configuration, ILogger logger, IMapper mapper, IMongoRepository<User> userRepo)
+        public UserController(IConfiguration configuration, ILogger logger, IMapper mapper, IMongoRepository<UserEntity> userRepo)
         {
             _configuration = configuration;
             _logger = logger;
@@ -55,7 +55,7 @@ namespace Api.Controllers
         [HttpPost("login", Name = "PostLogin")]
         public IActionResult PostLogin()
         {
-            _userRepo.AddAsync(new User
+            _userRepo.AddAsync(new UserEntity
             {
                 UserId = Guid.NewGuid()
             });

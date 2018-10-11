@@ -14,9 +14,9 @@ namespace Infrastructure.Data.Mappings
             AddConventionPack();
             MongoDefaults.GuidRepresentation = MongoDB.Bson.GuidRepresentation.Standard;
 
-            if (!BsonClassMap.IsClassMapRegistered(typeof(User)))
+            if (!BsonClassMap.IsClassMapRegistered(typeof(UserEntity)))
             {
-                BsonClassMap.RegisterClassMap<User>(cm =>
+                BsonClassMap.RegisterClassMap<UserEntity>(cm =>
                 {
                     cm.SetIdMember(cm.GetMemberMap(a => a.UserId));
                     cm.AutoMap();

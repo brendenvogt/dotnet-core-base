@@ -1,7 +1,7 @@
 ﻿using System;
 namespace Core.Entities
 {
-    public class User
+    public class UserEntity
     {
         public Guid UserId { get; set; }
         public string Email { get; set; }
