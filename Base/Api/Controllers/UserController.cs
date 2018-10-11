@@ -1,15 +1,14 @@
-﻿using System;
-using System.Net;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Configuration;
 
 using AutoMapper;
-using Swashbuckle.AspNetCore.Swagger;
-using Infrastructure.Data.Repositories;
-using Core.Entities;
+
+using Core.Contracts;
+using Infrastructure.Services;
+using Infrastructure.Interfaces;
 
 namespace Api.Controllers
 {
@@ -22,20 +21,19 @@ namespace Api.Controllers
         readonly ILogger _logger;
         readonly IConfiguration _configuration;
         readonly IMapper _mapper;
-        readonly IMongoRepository<UserEntity> _userRepo;
-
-        /// <summary>
+        readonly IUserService _userService;
+ /// <summary>
         /// Initializes a new instance of the controller
         /// </summary>
         /// <param name="configuration">Configuration.</param>
         /// <param name="logger">Logger.</param>
         /// <param name="mapper">Mapper.</param>
-        public UserController(IConfiguration configuration, ILogger logger, IMapper mapper, IMongoRepository<UserEntity> userRepo)
+        public UserController(IConfiguration configuration, ILogger logger, IMapper mapper, IUserService userService)
         {
             _configuration = configuration;
             _logger = logger;
             _mapper = mapper;
-            _userRepo = userRepo;
+            _userService = userService;
         }
 
         /// <summary>
@@ -43,9 +41,10 @@ namespace Api.Controllers
         /// </summary>
         /// <returns>JWT Token.</returns>
         [HttpPost("signup")]
-        public IActionResult PostSignup()
+        public IActionResult PostSignup(SignupUserContract signup)
         {
-            return new JsonResult(new { success = true });
+            var user = _userService.AddUser(signup, out var authInfo);
+            return new JsonResult(new { user, authInfo});
         }
 
         /// <summary>
@@ -53,22 +52,25 @@ namespace Api.Controllers
         /// </summary>
         /// <returns>JWT Token.</returns>
         [HttpPost("login", Name = "PostLogin")]
-        public async Task<IActionResult> PostLogin()
+        public async Task<IActionResult> PostLogin(LoginUserContract login)
         {
-            var user = new UserEntity
-            {
-                UserId = Guid.NewGuid()
-            };
-
-            await _userRepo.AddAsync(user);
-
-            await _userRepo.DeleteAsync(a => a.UserId == user.UserId);
-
-            return new JsonResult(new { success = true });
+            var authInfo = await _userService.LoginUserEmailAsync(login);
+            return new JsonResult(new { authInfo });
         }
 
-        //name
-        //phone number or email address
+        /// <summary>
+        /// Get current Authed user
+        /// </summary>
+        /// <returns>JWT Token.</returns>
+        [HttpGet]
+        [Authorize]
+        public async Task<IActionResult> GetAuthedUser()
+        {
+            if (HttpContext.IsAuthed(out var userId)){
+                return new JsonResult(await _userService.GetUserAsync(userId));
+            }
+            return BadRequest();
+        }
 
     }
 }

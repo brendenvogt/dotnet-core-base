@@ -1,22 +1,25 @@
 ﻿using System;
+using System.IO;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.PlatformAbstractions;
+using FluentValidation.AspNetCore;
 
 using Swashbuckle.AspNetCore.Swagger;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
 using Serilog;
 using ILogger = Microsoft.Extensions.Logging.ILogger;
+using Newtonsoft.Json;
 
-using Microsoft.Extensions.PlatformAbstractions;
-using System.IO;
-
+using Auth;
+using Api.Validators;
 using Infrastructure.Utilities;
-
+using Core.Utilities;
 
 namespace Api
 {
@@ -41,7 +44,20 @@ namespace Api
         {
             services.AddCommonDependencies(Configuration, _logger);
 
-            services.AddMvc();
+            services.AddCors()
+                .AddMemoryCache()
+                .AddMvc(o => o.Filters.Add(new ValidationFilter()))
+                .AddJsonOptions(o =>
+                {
+                    o.SerializerSettings.ContractResolver = new ExcludePropertyNameResolver(new[] { "PasswordHash", "UserId" });
+                    o.SerializerSettings.DateParseHandling = DateParseHandling.DateTime;
+                })
+                .AddFluentValidation(v => v.RegisterValidatorsFromAssemblyContaining<Startup>());
+
+            services.UseTrdAuthentication(CreateAuthenticationOptions());
+            services.AddAuthorization(o => o.AddPolicy("Admin", policy => policy.RequireRole("Admin")));
+            services.AddAuthorization(o => o.AddPolicy("Manager", policy => policy.RequireRole("Manager")));
+            services.AddAuthorization(o => o.AddPolicy("CustomerService", policy => policy.RequireRole("CustomerService")));
 
             if (Configuration["EnableSwagger"] == "true")
                 services.AddSwaggerGen(CreateSwaggerSetup());
@@ -82,8 +98,17 @@ namespace Api
             return loggerFactory.CreateLogger<Startup>();
         }
 
+        AuthOptions CreateAuthenticationOptions()
+        {
+            var options = new AuthOptions
+            {
+                SecretKey = Configuration["Security:SecretKey"],
+                EncryptionKey = Configuration["Security:EncryptionKey"]
+            };
+            return options;
+        }
 
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory, IServiceProvider serviceProvider)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env)//, ILoggerFactory loggerFactory, IServiceProvider serviceProvider)
         {
             if (env.IsDevelopment())
                 app.UseDeveloperExceptionPage();
