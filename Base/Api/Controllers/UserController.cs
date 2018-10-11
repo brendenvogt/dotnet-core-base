@@ -53,12 +53,16 @@ namespace Api.Controllers
         /// </summary>
         /// <returns>JWT Token.</returns>
         [HttpPost("login", Name = "PostLogin")]
-        public IActionResult PostLogin()
+        public async Task<IActionResult> PostLogin()
         {
-            _userRepo.AddAsync(new UserEntity
+            var user = new UserEntity
             {
                 UserId = Guid.NewGuid()
-            });
+            };
+
+            await _userRepo.AddAsync(user);
+
+            await _userRepo.DeleteAsync(a => a.UserId == user.UserId);
 
             return new JsonResult(new { success = true });
         }
