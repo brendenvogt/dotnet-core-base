@@ -41,10 +41,10 @@ namespace Api.Controllers
         /// </summary>
         /// <returns>JWT Token.</returns>
         [HttpPost("signup")]
-        public IActionResult PostSignup(SignupUserContract signup)
+        public IActionResult PostSignup([FromBody]SignupUserContract signup)
         {
             var user = _userService.AddUser(signup, out var authInfo);
-            return new JsonResult(new { user, authInfo});
+            return new JsonResult(authInfo);
         }
 
         /// <summary>
@@ -52,10 +52,10 @@ namespace Api.Controllers
         /// </summary>
         /// <returns>JWT Token.</returns>
         [HttpPost("login")]
-        public async Task<IActionResult> PostLogin(LoginUserContract login)
+        public async Task<IActionResult> PostLogin([FromBody]LoginUserContract login)
         {
             var authInfo = await _userService.LoginUserEmailAsync(login);
-            return new JsonResult(new { authInfo });
+            return new JsonResult(authInfo);
         }
 
         /// <summary>
