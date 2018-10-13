@@ -51,7 +51,7 @@ namespace Api.Controllers
         /// Login Username endpoint using an email and password.
         /// </summary>
         /// <returns>JWT Token.</returns>
-        [HttpPost("login", Name = "PostLogin")]
+        [HttpPost("login")]
         public async Task<IActionResult> PostLogin(LoginUserContract login)
         {
             var authInfo = await _userService.LoginUserEmailAsync(login);
@@ -69,7 +69,7 @@ namespace Api.Controllers
             if (HttpContext.IsAuthed(out var userId)){
                 return new JsonResult(await _userService.GetUserAsync(userId));
             }
-            return BadRequest();
+            return Unauthorized();
         }
 
     }

@@ -14,7 +14,7 @@ namespace Infrastructure.Data.Repositories
 
         public MongoRepository(IMongoDatabase database)
         {
-            var collectionName = ToLowerFirstChar(typeof(T).Name);
+            var collectionName = ToLowerFirstChar(typeof(T).Name).Replace("Entity", "");
             Collection = database.GetCollection<T>(collectionName);
         }
 

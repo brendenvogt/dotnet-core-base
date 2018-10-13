@@ -54,7 +54,7 @@ namespace Api
                 })
                 .AddFluentValidation(v => v.RegisterValidatorsFromAssemblyContaining<Startup>());
 
-            services.UseTrdAuthentication(CreateAuthenticationOptions());
+            services.UseAuthentication(CreateAuthenticationOptions());
             services.AddAuthorization(o => o.AddPolicy("Admin", policy => policy.RequireRole("Admin")));
             services.AddAuthorization(o => o.AddPolicy("Manager", policy => policy.RequireRole("Manager")));
             services.AddAuthorization(o => o.AddPolicy("CustomerService", policy => policy.RequireRole("CustomerService")));

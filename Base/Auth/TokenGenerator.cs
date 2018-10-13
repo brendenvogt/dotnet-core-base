@@ -21,12 +21,13 @@ namespace Auth
                 claims.AddRange(additionalClaims);
 
             var signingKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(secretKey));
-            var signingCredentials = new SigningCredentials(signingKey, SecurityAlgorithms.HmacSha256);
+            var signingCredentials = new SigningCredentials(signingKey, SecurityAlgorithms.HmacSha512);
 
             var newExpiration = expiration ?? DateTime.Now.AddDays(7);
             var handler = new JwtSecurityTokenHandler();
 
-            var jwtSecurityToken = handler.CreateJwtSecurityToken("Api", "Api", new ClaimsIdentity(claims), DateTime.Now, newExpiration, DateTime.Now, signingCredentials, string.IsNullOrEmpty(payloadEncryptionKey) ? null : EncryptingCredentials(payloadEncryptionKey));
+            var encryptingCredentials = string.IsNullOrEmpty(payloadEncryptionKey) ? null : EncryptingCredentials(payloadEncryptionKey);
+            var jwtSecurityToken = handler.CreateJwtSecurityToken("Api", "Api", new ClaimsIdentity(claims), DateTime.Now, newExpiration, DateTime.Now, signingCredentials, encryptingCredentials);
             var token = handler.WriteToken(jwtSecurityToken);
 
             return token;
@@ -35,17 +36,18 @@ namespace Auth
         static EncryptingCredentials EncryptingCredentials(string encryptionKey)
         {
             var payloadKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(encryptionKey));
-            return new EncryptingCredentials(payloadKey, SecurityAlgorithms.Aes128KW, SecurityAlgorithms.Aes128CbcHmacSha256);
+            return new EncryptingCredentials(payloadKey, SecurityAlgorithms.Aes256KW, SecurityAlgorithms.Aes256CbcHmacSha512);
         }
 
         public static TokenValidationParameters CreateTokenValidationParameters(string secretKey, string encryptionKey = null)
         {
             var signingKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(secretKey));
+            var decryptionKey = string.IsNullOrEmpty(encryptionKey) ? null : new SymmetricSecurityKey(Encoding.ASCII.GetBytes(encryptionKey));
             return new TokenValidationParameters
             {
                 ValidateIssuerSigningKey = true,
                 IssuerSigningKey = signingKey,
-
+                
                 ValidateIssuer = true,
                 ValidIssuer = "Api",
 
@@ -54,8 +56,8 @@ namespace Auth
 
                 ValidateLifetime = true,
                 ClockSkew = TimeSpan.Zero,
-
-                TokenDecryptionKey = string.IsNullOrEmpty(encryptionKey) ? null : new SymmetricSecurityKey(Encoding.ASCII.GetBytes(encryptionKey))
+                
+                TokenDecryptionKey = decryptionKey
             };
         }
 

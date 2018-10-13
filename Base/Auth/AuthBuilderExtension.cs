@@ -6,7 +6,7 @@ namespace Auth
 {
     public static class AuthBuilderExtension
     {
-        public static IServiceCollection UseTrdAuthentication(this IServiceCollection services, AuthOptions tokenOptions)
+        public static IServiceCollection UseAuthentication(this IServiceCollection services, AuthOptions tokenOptions)
         {
             var jwtTokenValidator = new JwtSecurityTokenHandler();
             var validator = new TokenValidator(jwtTokenValidator);
@@ -19,6 +19,7 @@ namespace Auth
             {
                 options.TokenValidationParameters = TokenGenerator.CreateTokenValidationParameters(tokenOptions.SecretKey, tokenOptions.EncryptionKey);
                 options.RequireHttpsMetadata = false;
+                //todo refactor to default to true for prod and false for dev
             });
 
             return services;

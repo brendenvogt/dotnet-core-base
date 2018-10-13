@@ -48,7 +48,7 @@ namespace Infrastructure.Services
 
             var newId = Guid.NewGuid();
             var expiration = DateTime.UtcNow.AddDays(ExpirationDays);
-            var bearerToken = TokenGenerator.GenerateToken(newId, _configuration["Security:SecretKey"], expiration);
+            var bearerToken = TokenGenerator.GenerateToken(newId, _configuration["Security:SecretKey"], expiration, null, _configuration["Security:EncryptionKey"]);
             var passwordHash = CredentialUtility.HashPassword(user.Password);
 
             var addUser = new UserEntity
