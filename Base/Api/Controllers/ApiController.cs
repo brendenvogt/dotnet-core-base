@@ -12,7 +12,7 @@ namespace Api.Controllers
         [HttpGet]
         public IActionResult Api()
         {
-            return new JsonResult(new { success = true });
+            return new JsonResult(new { response = true });
         }
     }
 }

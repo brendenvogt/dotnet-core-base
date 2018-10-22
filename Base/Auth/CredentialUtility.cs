@@ -25,7 +25,6 @@ namespace Auth
             Array.Copy(hash, 0, hashBytes, 16, 20);
 
             string hashedPassword = Convert.ToBase64String(hashBytes);
-
             return hashedPassword;
         }
 

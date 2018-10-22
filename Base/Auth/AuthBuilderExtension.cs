@@ -21,7 +21,6 @@ namespace Auth
                 options.RequireHttpsMetadata = false;
                 //todo refactor to default to true for prod and false for dev
             });
-
             return services;
         }
     }

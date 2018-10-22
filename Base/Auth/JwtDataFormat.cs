@@ -12,7 +12,7 @@ namespace Auth
         public JwtDataFormat(TokenValidator tokenValidator, string secretKey, string encryptionKey)
         {
             _tokenValidator = tokenValidator;
-            _encryptionKey = secretKey;
+            _encryptionKey = encryptionKey;
             _secretKey = secretKey;
         }
 
